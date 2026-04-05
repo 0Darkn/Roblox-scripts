@@ -149,9 +149,9 @@ Lua = controlo dentro do Roblox
 🖥️ PARTE 1 — Cliente Python (Qt)
 
 Instalar:
-
+```
 pip install PyQt5 pyautogui
-
+```
 
 ---
 
