@@ -368,4 +368,280 @@ Bot semi-automático (legal)
 ---
 
 - bot real com Lua + Python ligado (nível avançado)
+---
+- versão profissional e funcional:
+👉 comunicação Python (Qt) + Lua dentro do Roblox de forma segura e legítima.
+
+
+---
+
+🧠 🔗 Arquitetura do sistema
+
+[ Python Qt App ]
+        ↓ (ficheiro / comando)
+[ ficheiro JSON / TXT ]
+        ↓
+[ Script Lua no Roblox ]
+        ↓
+[ Movimento / objetos / ações ]
+
+👉 O Python não mexe diretamente no jogo
+👉 O Lua executa tudo dentro do Roblox
+
+
+---
+
+📁 Estrutura do projeto
+
+roblox_bot/
+│
+├── client_qt.py        ← Interface Python
+├── comandos.json       ← Comunicação
+└── roblox_script.lua   ← Script Roblox
+
+
+---
+
+🖥️ PARTE 1 — Cliente Python Qt (comandos)
+
+Instalar:
+
+pip install PyQt5
+
+
+---
+
+🧾 Script completo (Python Qt)
+
+import sys
+import json
+
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QPushButton,
+    QVBoxLayout, QWidget, QLabel
+)
+
+# ==========================
+# FUNÇÃO PARA ENVIAR COMANDOS
+# ==========================
+def enviar_comando(acao, valor=None):
+    dados = {
+        "acao": acao,
+        "valor": valor
+    }
+
+    with open("comandos.json", "w") as f:
+        json.dump(dados, f, indent=4)
+
+
+# ==========================
+# GUI
+# ==========================
+class App(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Roblox Bot - Python Qt")
+        self.setGeometry(100, 100, 400, 300)
+
+        layout = QVBoxLayout()
+
+        self.label = QLabel("Controlo Roblox via Lua")
+        layout.addWidget(self.label)
+
+        # ==========================
+        # BOTÕES
+        # ==========================
+
+        btn_frente = QPushButton("Mover Frente")
+        btn_frente.clicked.connect(lambda: enviar_comando("mover", "frente"))
+        layout.addWidget(btn_frente)
+
+        btn_tras = QPushButton("Mover Trás")
+        btn_tras.clicked.connect(lambda: enviar_comando("mover", "tras"))
+        layout.addWidget(btn_tras)
+
+        btn_objeto = QPushButton("Subir Objeto")
+        btn_objeto.clicked.connect(lambda: enviar_comando("objeto", "subir"))
+        layout.addWidget(btn_objeto)
+
+        btn_parar = QPushButton("Parar")
+        btn_parar.clicked.connect(lambda: enviar_comando("parar"))
+        layout.addWidget(btn_parar)
+
+        btn_sair = QPushButton("Sair")
+        btn_sair.clicked.connect(self.close)
+        layout.addWidget(btn_sair)
+
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+
+# ==========================
+# MAIN
+# ==========================
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    janela = App()
+    janela.show()
+    sys.exit(app.exec_())
+
+
+---
+
+🎮 PARTE 2 — Script Lua no Roblox
+
+👉 Coloca isto no Script dentro do jogo (ou no Roblox Studio)
+
+
+---
+
+🧾 Script Lua completo
+
+local HttpService = game:GetService("HttpService")
+
+-- Nome do ficheiro (simulado via string)
+local caminho = "comandos.json"
+
+-- Função para ler comandos (simulação)
+function lerComando()
+    local sucesso, conteudo = pcall(function()
+        return readfile(caminho)
+    end)
+
+    if sucesso and conteudo then
+        return HttpService:JSONDecode(conteudo)
+    end
+
+    return nil
+end
+
+-- Jogador
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Objeto de teste
+local part = workspace:FindFirstChild("Part")
+
+-- Loop principal
+while true do
+    wait(1)
+
+    local cmd = lerComando()
+
+    if cmd then
+        if cmd.acao == "mover" then
+
+            if cmd.valor == "frente" then
+                character:Move(Vector3.new(0,0,-5), true)
+            elseif cmd.valor == "tras" then
+                character:Move(Vector3.new(0,0,5), true)
+            end
+
+        elseif cmd.acao == "objeto" then
+
+            if part and cmd.valor == "subir" then
+                part.Position = part.Position + Vector3.new(0,5,0)
+            end
+
+        elseif cmd.acao == "parar" then
+            print("Parado")
+        end
+    end
+end
+
+
+---
+
+⚠️ IMPORTANTE
+
+👉 Funções como readfile():
+
+só funcionam em ambiente de teste / plugins
+
+para produção usa:
+
+RemoteEvents
+
+HttpService (API)
+
+DataStore
+
+
+
+
+---
+
+🚀 EVOLUÇÃO (nível avançado)
+
+---
+
+🔌 Comunicação real (recomendado)
+
+Substituir ficheiro por:
+
+🌐 API Flask (Python)
+
+📡 HttpService no Roblox
+
+
+
+---
+
+🧠 AI + Bot inteligente
+
+integração com LLM
+
+decisões automáticas
+
+memória por utilizador
+
+
+
+---
+
+🎮 Sistema completo
+
+GUI Qt com:
+
+logs
+
+estado do jogador
+
+lista de objetos
+
+
+controlo em tempo real
+
+múltiplos bots
+
+
+
+---
+
+🔐 Multiplayer / controlo remoto
+
+vários clientes
+
+autenticação
+
+permissões
+
+
+
+---
+
+❓ Próximo passo
+
+Posso já fazer para ti a versão PRO:
+
+👉 Python Qt + Flask API
+👉 Roblox Lua com HttpService
+👉 comunicação em tempo real
+
+
+
+👉 “versão API”
+---
 
