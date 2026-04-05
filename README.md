@@ -644,4 +644,301 @@ Posso já fazer para ti a versão PRO:
 
 👉 “versão API”
 ---
+# versão **PRO com API real (Python + Qt + Flask + Lua no Roblox)****, com comunicação em tempo real e arquitetura limpa.
+
+
+---
+
+🧠 🔗 Arquitetura final (profissional)
+
+[ Cliente Qt (Python) ]
+          ↓ HTTP (POST)
+[ API Flask (Python) ]
+          ↓ JSON
+[ Roblox Lua (HttpService) ]
+          ↓
+[ Jogo (movimento, objetos, ações) ]
+
+👉 Comunicação real via HTTP
+👉 Nada de hacks — tudo dentro das regras
+
+
+---
+
+📁 Estrutura do projeto
+
+roblox_api_bot/
+│
+├── server.py        ← API Flask
+├── client_qt.py     ← Interface Qt
+└── roblox.lua       ← Script no Roblox
+
+
+---
+
+🖥️ PARTE 1 — API Flask
+
+📦 Instalar
+
+pip install flask flask-cors
+
+
+---
+
+🧾 server.py (com comentários)
+
+# =====================================
+# IMPORTS
+# =====================================
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+# Criar app
+app = Flask(__name__)
+CORS(app)
+
+# Estado atual (memória simples)
+estado = {
+    "acao": None,
+    "valor": None
+}
+
+# =====================================
+# ROTA: ENVIAR COMANDO (Qt → API)
+# =====================================
+@app.route("/comando", methods=["POST"])
+def comando():
+    global estado
+
+    dados = request.json
+
+    estado["acao"] = dados.get("acao")
+    estado["valor"] = dados.get("valor")
+
+    return jsonify({"status": "ok", "estado": estado})
+
+
+# =====================================
+# ROTA: OBTER COMANDO (Roblox → API)
+# =====================================
+@app.route("/comando", methods=["GET"])
+def get_comando():
+    return jsonify(estado)
+
+
+# =====================================
+# MAIN
+# =====================================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+
+---
+
+🖥️ PARTE 2 — Cliente Qt (controlo)
+
+📦 Instalar
+
+pip install PyQt5 requests
+
+
+---
+
+🧾 client_qt.py
+
+import sys
+import requests
+
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QPushButton,
+    QVBoxLayout, QWidget, QLabel
+)
+
+API_URL = "http://127.0.0.1:5000/comando"
+
+# =====================================
+# ENVIAR COMANDO PARA API
+# =====================================
+def enviar(acao, valor=None):
+    requests.post(API_URL, json={
+        "acao": acao,
+        "valor": valor
+    })
+
+
+class App(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Roblox API Bot")
+        self.setGeometry(100, 100, 400, 300)
+
+        layout = QVBoxLayout()
+
+        self.label = QLabel("Controlo via API")
+        layout.addWidget(self.label)
+
+        # BOTÕES
+        btn_frente = QPushButton("Frente")
+        btn_frente.clicked.connect(lambda: enviar("mover", "frente"))
+        layout.addWidget(btn_frente)
+
+        btn_tras = QPushButton("Trás")
+        btn_tras.clicked.connect(lambda: enviar("mover", "tras"))
+        layout.addWidget(btn_tras)
+
+        btn_obj = QPushButton("Subir Objeto")
+        btn_obj.clicked.connect(lambda: enviar("objeto", "subir"))
+        layout.addWidget(btn_obj)
+
+        btn_stop = QPushButton("Parar")
+        btn_stop.clicked.connect(lambda: enviar("parar"))
+        layout.addWidget(btn_stop)
+
+        btn_sair = QPushButton("Sair")
+        btn_sair.clicked.connect(self.close)
+        layout.addWidget(btn_sair)
+
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    janela = App()
+    janela.show()
+    sys.exit(app.exec_())
+
+
+---
+
+🎮 PARTE 3 — Script Lua no Roblox
+
+👉 Usar dentro do Roblox Studio
+
+
+---
+
+⚠️ ATIVAR HTTP
+
+No Roblox Studio:
+
+👉 Home > Game Settings > Security
+👉 Ativar HTTP Requests
+
+
+---
+
+🧾 roblox.lua
+
+local HttpService = game:GetService("HttpService")
+
+local URL = "http://SEU_IP:5000/comando"
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local part = workspace:FindFirstChild("Part")
+
+while true do
+    wait(1)
+
+    local sucesso, resposta = pcall(function()
+        return HttpService:GetAsync(URL)
+    end)
+
+    if sucesso then
+        local dados = HttpService:JSONDecode(resposta)
+
+        if dados.acao == "mover" then
+
+            if dados.valor == "frente" then
+                character:Move(Vector3.new(0,0,-5), true)
+
+            elseif dados.valor == "tras" then
+                character:Move(Vector3.new(0,0,5), true)
+            end
+
+        elseif dados.acao == "objeto" then
+
+            if part and dados.valor == "subir" then
+                part.Position = part.Position + Vector3.new(0,5,0)
+            end
+
+        elseif dados.acao == "parar" then
+            print("Parado")
+        end
+    end
+end
+
+
+---
+
+🌐 🔥 IMPORTANTE (rede)
+
+🔹 Se estiver no mesmo PC:
+
+http://127.0.0.1:5000
+
+🔹 Se for outro PC:
+
+http://IP_DO_SERVIDOR:5000
+
+
+---
+
+🚀 MELHORIAS (posso fazer já)
+
+🔹 Tempo real (sem delay)
+
+WebSockets
+
+
+🔹 Segurança
+
+Token / API Key
+
+autenticação por utilizador
+
+
+🔹 Interface avançada
+
+Logs em tempo real
+
+Estado do jogador
+
+Lista de objetos
+
+
+🔹 Bot inteligente 🤖
+
+decisões automáticas
+
+integração com AI
+
+
+🔹 Multi-bot
+
+vários jogadores controlados
+
+
+
+---
+
+❓ Próximo passo
+
+👉 🔐 sistema com login + permissões
+👉 ⚡ WebSocket (tempo real sem polling)
+👉 🧠 AI bot (RAG + memória)
+👉 🎮 controlo completo de mundo (objetos + eventos)
+
+
+---
+
+talvez atualização:
+
+👉 “tempo real (WebSocket)”
+
+👉 “bot inteligente AI”
 
